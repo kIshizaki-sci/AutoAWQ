@@ -85,6 +85,7 @@ TRANSFORMERS_AUTO_MAPPING_DICT = {
     "minicpm3":"AutoModelForCausalLM",
     "internlm2": "AutoModelForCausalLM",
     "qwen2_vl": "AutoModelForVision2Seq",
+    "mllama": "MllamaAWQForConditionalGeneration",
 }
 
 
@@ -504,15 +505,26 @@ class BaseAWQForCausalLM(nn.Module):
 
         # loads the weights into modules and distributes
         # across available devices automatically
-        load_checkpoint_and_dispatch(
-            model,
-            checkpoint=model_weights_path,
-            device_map=device_map,
-            max_memory=max_memory,
-            no_split_module_classes=[self.layer_type],
-            offload_folder=offload_folder,
-            dtype=torch_dtype,
-        )
+        if isinstance(self.layer_type, list):
+            load_checkpoint_and_dispatch(
+                model,
+                checkpoint=model_weights_path,
+                device_map=device_map,
+                max_memory=max_memory,
+                no_split_module_classes=self.layer_type,
+                offload_folder=offload_folder,
+                dtype=torch_dtype,
+            )
+        else:
+            load_checkpoint_and_dispatch(
+                model,
+                checkpoint=model_weights_path,
+                device_map=device_map,
+                max_memory=max_memory,
+                no_split_module_classes=[self.layer_type],
+                offload_folder=offload_folder,
+                dtype=torch_dtype,
+            )
 
         # Dispath to devices
         awq_ext, msg = try_import("awq_ext")
