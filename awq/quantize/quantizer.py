@@ -158,10 +158,17 @@ class AwqQuantizer:
             if (
                 transformers.__version__ >= "4.48.0"
                 and self.module_kwargs.get("position_embeddings") is None
+                #In gemma3, "position_embeddings" is not used, but "position_embeddings_global" and "position_embeddings_local" are used.
+                and self.awq_model.model_type not in ["gemma3"]
             ):
                 self.module_kwargs["position_embeddings"] = self.model.model.rotary_emb(
                     self.inps, self.module_kwargs["position_ids"]
                 )
+            if self.awq_model.model_type=="gemma3":
+                if self.modules[i].self_attn.is_sliding:
+                    self.module_kwargs["position_embeddings"] = self.module_kwargs["position_embeddings_local"]
+                else:
+                    self.module_kwargs["position_embeddings"] = self.module_kwargs["position_embeddings_global"]
 
             for k, v in self.module_kwargs.items():
                 # position embeddings found in tuple

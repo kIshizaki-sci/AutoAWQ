@@ -30,6 +30,7 @@ AWQ_CAUSAL_LM_MODEL_MAP = {
     "qwen3_moe": Qwen3MoeAWQForCausalLM,
     "gemma": GemmaAWQForCausalLM,
     "gemma2": Gemma2AWQForCausalLM,
+    "gemma3": Gemma3ForConditionalGeneration,
     "stablelm": StableLmAWQForCausalLM,
     "starcoder2": Starcoder2AWQForCausalLM,
     "llava_next": LlavaNextAWQForCausalLM,

@@ -47,7 +47,6 @@ from accelerate.big_modeling import (
 from awq.models._config import AwqConfig
 from awq.modules.act import ScaledActivation
 from awq.quantize.quantizer import AwqQuantizer
-from awq.utils.module import get_named_linears, set_op_by_name
 
 
 # Since we support different `AutoModelForxxx` from transformers
@@ -77,6 +76,7 @@ TRANSFORMERS_AUTO_MAPPING_DICT = {
     "qwen3_moe": "AutoModelForCausalLM",
     "gemma": "AutoModelForCausalLM",
     "gemma2": "AutoModelForCausalLM",
+    "gemma3": "AutoModelForImageTextToText",
     "stablelm": "AutoModelForCausalLM",
     "starcoder2": "AutoModelForCausalLM",
     "llava_next": "AutoModelForVision2Seq",
@@ -382,7 +382,7 @@ class BaseAWQForCausalLM(nn.Module):
 
         if model_init_kwargs.get("low_cpu_mem_usage") is None:
             model_init_kwargs["low_cpu_mem_usage"] = low_cpu_mem_usage
-        if model_init_kwargs.get("use_cache") is None and target_cls_name != "AutoModelForVision2Seq":
+        if model_init_kwargs.get("use_cache") is None and target_cls_name not in ["AutoModelForVision2Seq", "AutoModelForImageTextToText"]:
             model_init_kwargs["use_cache"] = use_cache
 
         # If not quantized, must load with AutoModelForCausalLM

@@ -19,6 +19,7 @@ from .qwen3 import Qwen3AWQForCausalLM
 from .qwen3_moe import Qwen3MoeAWQForCausalLM
 from .gemma import GemmaAWQForCausalLM
 from .gemma2 import Gemma2AWQForCausalLM
+from .gemma3 import Gemma3ForConditionalGeneration
 from .stablelm import StableLmAWQForCausalLM
 from .starcoder2 import Starcoder2AWQForCausalLM
 from .llava_next import LlavaNextAWQForCausalLM
