@@ -153,7 +153,7 @@ class Qwen3MoeAWQForCausalLM(BaseAWQForCausalLM):
     def _load_quantized_modules(
         self, model, quant_config, version, use_exllama, use_exllama_v2, use_ipex=False
     ):
-        self._insert_dummy_fn()
+        self._insert_dummy_fn(self)
         super()._load_quantized_modules(model, quant_config, version, use_exllama, use_exllama_v2, use_ipex)
 
     @staticmethod
