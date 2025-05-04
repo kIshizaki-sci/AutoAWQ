@@ -8,4 +8,7 @@ class ScaledActivation(nn.Module):
         self.scales = nn.Parameter(scales.data)
 
     def forward(self, x):
-        return self.act(x) / self.scales.view(1, 1, -1).to(x.device)
+        if len(x.shape)==3:
+            return self.act(x) / self.scales.view(1, 1, -1).to(x.device)
+        elif len(x.shape)==2:
+            return self.act(x) / self.scales.view(1, -1).to(x.device)

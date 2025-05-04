@@ -1,6 +1,8 @@
 import tqdm
 from typing import List, Tuple
 from .base import BaseAWQForCausalLM
+from awq.modules.act import ScaledActivation
+from awq.utils.module import set_op_by_name
 
 from transformers.models.qwen3_moe.modeling_qwen3_moe import Qwen3MoeSparseMoeBlock
 import torch
@@ -19,7 +21,7 @@ class Qwen3MoeAWQForCausalLM(BaseAWQForCausalLM):
     def get_act_for_scaling(module):
         scales = []
         if isinstance(module.mlp, Qwen3MoeSparseMoeBlock):
-            for i in range(module.mlp.experts):
+            for i in range(len(module.mlp.experts)):
                 scales.append(
                     dict(
                         scale_name=f"mlp.experts.{i}.dummy_fn",
@@ -153,8 +155,8 @@ class Qwen3MoeAWQForCausalLM(BaseAWQForCausalLM):
     def _load_quantized_modules(
         self, model, quant_config, version, use_exllama, use_exllama_v2, use_ipex=False
     ):
-        self._insert_dummy_fn(self)
-        super()._load_quantized_modules(model, quant_config, version, use_exllama, use_exllama_v2, use_ipex)
+        self._insert_dummy_fn(model)
+        super()._load_quantized_modules(self, model, quant_config, version, use_exllama, use_exllama_v2, use_ipex)
 
     @staticmethod
     def _scale_activations(self, layer):
@@ -181,8 +183,12 @@ class Qwen3MoeAWQForCausalLM(BaseAWQForCausalLM):
             x = self.dummy_fn(x)
             down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
             return down_proj
-            
-        for layer in self.model.model.layers:
+
+        if hasattr(self.model, "model"):
+            layers = self.model.model.layers
+        else:
+            layers = self.model.layers
+        for layer in layers:
             if isinstance(layer.mlp, Qwen3MoeSparseMoeBlock):
                 for expert in layer.mlp.experts:
                     expert.dummy_fn = nn.Identity()
