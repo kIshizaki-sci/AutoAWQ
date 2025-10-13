@@ -572,11 +572,24 @@ class AwqQuantizer:
         # get input and kwargs to layer 0
         # with_kwargs is only supported in PyTorch 2.0
         # use this Catcher hack for now
+        # init_quantメソッド内のCatcherクラスを以下に置き換える
         class Catcher(nn.Module):
             def __init__(self, module):
                 super().__init__()
                 self.module = module
-
+            
+            def __getattr__(self, name):
+                """元のモジュールの属性にアクセスできるようにする"""
+                # nn.Moduleのデフォルトの__getattr__を避ける
+                if name == 'module':
+                    return self._modules.get('module')
+                # 元のモジュールから属性を取得
+                try:
+                    return getattr(self.module, name)
+                except AttributeError:
+                    # 標準的なnn.Moduleの__getattr__にフォールバック
+                    return super().__getattr__(name)
+        
             def forward(self, *args, **kwargs):
                 # assume first input to forward is hidden states
                 if len(args) > 0:
@@ -585,7 +598,7 @@ class AwqQuantizer:
                 else:
                     first_key = list(kwargs.keys())[0]
                     hidden_states = kwargs.pop(first_key)
-
+        
                 inps.append(hidden_states)
                 layer_kwargs.update(kwargs)
                 raise ValueError  # early exit to break later inference
